@@ -2,43 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title>HTML</title>
-  
-  <!-- HTML -->
-  
-
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DanyVideo - Free Video Downloader</title>
+  <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+  <style>
+    body { font-family: Arial, sans-serif; text-align:center; margin:0; padding:0; background:#f8f8f8; }
+    header { background:#4cafef; color:white; padding:15px; font-size:22px; font-weight:bold; }
+    input { width:60%; padding:10px; border-radius:5px; border:1px solid #ccc; }
+    button { padding:10px 20px; background:#00c896; color:white; border:none; border-radius:5px; cursor:pointer; }
+    button:hover { background:#009f78; }
+    #result { margin-top:30px; }
+    .format { margin:10px; padding:10px; border:1px solid #ddd; border-radius:5px; background:white; display:inline-block; }
+  </style>
 </head>
-
 <body>
-  <div class="container">
-    <div class="tabs">
-      <h3 class="active">Video</h3>
-      <h3>Thumbnail</h3>
-    </div>
-    <div class="tab-content">
-      <div class="active">
-        <h1>YouTube Video Downloader</h1>
-        <p>Download videos, shorts , playlists from YouTube quickly and easily in HD quality</p>
-        <input type="text" class="link" placeholder="https://youtu.be/a-FX981WxOY?si=OqZ9oJhN-WgjCu10" />
-        <button class="btn" onclick="video()">Get</button>
-      </div>
+  <header>🌐 DanyVideo - Free Video Downloader</header>
   
-      <div>
-        <h1>YouTube Video Thumbnail Downloader</h1>
-        <p>Download thumbnails from YouTube videos in HD and in JPG, PNG, or WEBP format</p>
-  
-        <input type="text" class="link" placeholder="https://youtu.be/a-FX981WxOY?si=OqZ9oJhN-WgjCu10" />
-  
-        <button class="btn" onclick="video()">Get</button>
-      </div>
-    </div>
+  <div style="margin-top:50px;">
+    <form id="urlForm">
+      <input type="text" id="url" placeholder="Enter video URL...">
+      <button type="submit">Get Video</button>
+    </form>
   </div>
-  <!-- Project -->
-  <script src="main.js"></script>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById("urlForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const url = document.getElementById("url").value;
+      document.getElementById("result").innerHTML = "⏳ Fetching video info...";
+      const res = await fetch("/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      if (data.error) {
+        document.getElementById("result").innerHTML = "❌ Error: " + data.error;
+      } else {
+        let html = `<h3>${data.title}</h3><img src="${data.thumbnail}" width="200"><br>`;
+        data.formats.forEach(f => {
+          html += `<div class="format">
+            <b>${f.resolution || "Audio"}</b> (${f.ext}) 
+            <a href="${f.url}" target="_blank"><button>Download</button></a>
+          </div>`;
+        });
+        document.getElementById("result").innerHTML = html;
+      }
+    };
+  </script>
 </body>
 </html>
